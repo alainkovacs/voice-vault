@@ -30,7 +30,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "dev.cazimir.voicevault"
+        applicationId = "io.github.alainkovacs.voicevault"
         minSdk = 29
         targetSdk = 36
         // Bump both for every release: Play rejects an upload whose versionCode is not
@@ -57,6 +57,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+        }
         release {
             // R8 code + resource shrinking. Uses the stable legacy DSL rather than AGP 9's
             // optimization{} block, which still needs the experimental android.r8.gradual.support
