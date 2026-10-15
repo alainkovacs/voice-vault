@@ -1,0 +1,39 @@
+name: CI
+
+# Runs the JVM unit tests and Android lint on every push. Lint is checked against
+# app/lint-baseline.xml, so only issues introduced after the baseline fail the run.
+# There is no release workflow: this fork is installed as a debug build over adb.
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      # --continue so a lint failure still reports test results, and vice versa.
+      - name: Unit tests and lint
+        run: ./gradlew test lint --continue --no-daemon

@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## This fork
+
+This is a personal fork of [CazimirRoman/voice-vault](https://github.com/CazimirRoman/voice-vault) (the `upstream` remote, push disabled), used by one person on one phone. The rest of this file and the OpenSpec docs describe upstream; where they disagree with this section, this section wins.
+
+- **No releases.** The app used day to day is the debug build (`applicationIdSuffix = ".debug"`, labelled "Voice Vault Dev"), installed from Android Studio or with `adb install`. There are no signing secrets, no version bumping and no release workflow (upstream's `release.yml` was deleted). Every build must be signed with the same `%USERPROFILE%\.android\debug.keystore` (backed up): a differently signed build cannot install over the existing app, and uninstalling first wipes `filesDir`, including any captures still waiting in `pending/`.
+- **A settings screen is allowed.** Upstream's "no settings UI" non-goal does not apply here. User-facing options are toggles in one settings screen backed by one central `SharedPreferences` store, and every toggle's default must reproduce upstream behaviour exactly, so an install where nothing has been switched on behaves like upstream. Build-time constants stay in `Config.kt`. Naming follows upstream's own unimplemented `openspec/changes/add-pro-features` plan (`settings/SettingsStore.kt`, `settings/NoteSettings.kt`, `settings/SettingsScreen.kt`), so if upstream ever builds it the two line up file for file.
+- **Finished audio may go into the vault.** As an opt-in toggle, a capture's WAV is copied into a subfolder of the vault folder and linked from its note. Only *finished* audio goes there, with the same temp-then-rename as notes; pending and partial audio still never leave `filesDir/pending/`.
+- **One note per capture stays.** A one-file-per-day mode was considered and rejected: read-modify-write on a synced file invites sync conflicts and needs a riskier save path.
+- **Keep upstream merges cheap.** Prefer new files and narrow seams over rewriting upstream code, keep each change small, and merge with `git fetch upstream` then `git merge upstream/main`.
+
 ## What this is
 
 Voice Vault (package `dev.cazimir.voicevault`) is a Pixel-first (developed and verified on a Pixel 6 Pro, `arm64-v8a` only), eyes-free Android app that turns a power-button hold into a voice note: trigger → speak → pocket the phone → a Markdown file appears in an Obsidian vault. No screen interaction and no settings UI. Capture and transcription are fully offline; the app touches the network exactly once, holding `INTERNET` solely to download the ~57 MB speech model on first launch (see the network non-goal below). It is now released publicly as a signed APK, not just sideloaded to one device. See `openspec/changes/archive/2026-08-13-add-voice-note-capture/proposal.md` and `design.md` for the full rationale and accepted trade-offs — read `design.md`'s "Decisions" and "Risks / Trade-offs" sections before changing behavior in `assistant/`, `capture/`, or `vault/`, since most choices there (e.g. silence-based stop, audio-before-transcription ordering, screen-off as the stop gesture) were deliberate rejections of the "more correct" alternative. Note that `design.md` predates the `migrate-vault-to-saf` change (archived): the vault now uses the Storage Access Framework, so its original `MANAGE_EXTERNAL_STORAGE` decision no longer describes the code.
@@ -13,15 +23,18 @@ Voice Vault (package `dev.cazimir.voicevault`) is a Pixel-first (developed and v
 ./gradlew installDebug           # build and install on a connected device (primary target: Pixel 6 Pro)
 ./gradlew test                   # JVM unit tests (app/src/test)
 ./gradlew connectedAndroidTest   # instrumented tests on device (app/src/androidTest)
-./gradlew lint                   # Android lint
+./gradlew lint                   # Android lint, checked against app/lint-baseline.xml
+./gradlew updateLintBaseline     # re-snapshot accepted lint issues (only to accept issues deliberately)
 ```
 
-Distribution is a signed APK on GitHub Releases, built from the tagged commit by `.github/workflows/release.yml`. There is no test or PR CI, and behavior is still verified by sideloading to the physical Pixel 6 Pro rather than in the workflow. Many tasks in `openspec/changes/archive/2026-08-13-add-voice-note-capture/tasks.md` are marked incomplete specifically because they require a human with the physical device (feeling haptics, triggering via the real power button, observing the notification shade, etc.) — don't mark them done from code inspection alone.
+On Windows/PowerShell use `.\gradlew.bat` instead of `./gradlew`. Gradle needs a JDK: if `JAVA_HOME` is not set, point it at Android Studio's bundled one (`C:\Program Files\Android\Android Studio\jbr`).
+
+`.github/workflows/ci.yml` runs `./gradlew test lint` on every push. Lint is checked against `app/lint-baseline.xml`, which records the issues upstream code already had, so only newly introduced issues fail it. Behavior is still verified by installing on the physical phone, not in CI. Many tasks in `openspec/changes/archive/2026-08-13-add-voice-note-capture/tasks.md` are marked incomplete specifically because they require a human with the physical device (feeling haptics, triggering via the real power button, observing the notification shade, etc.) — don't mark them done from code inspection alone.
 
 ## Git workflow
 
 - **Never create branches.** Commit directly to `main`, even for multi-commit changes. This overrides any default about branching before committing on the default branch.
-- **No PRs.** There is no CI, no remote review, and one developer — a PR would only add a step between a commit and a sideload.
+- **No PRs.** There is no remote review and one developer — a PR would only add a step between a commit and a sideload. CI (test + lint) runs on the push itself.
 - Stage deliberately rather than with `git add -A`: OpenSpec changes authored in another session can be sitting untracked in the tree, and sweeping them into an unrelated commit is easy to do and annoying to unpick.
 
 ## OpenSpec workflow
@@ -61,6 +74,6 @@ power-button hold
 
 ### Non-goals (by design, not by omission)
 
-No settings/config UI, no note editing, no streaming/partial transcripts, no multi-language support (the build targets exactly one language, English, via `Config.TRANSCRIPTION_LANGUAGE` plus an `.en` model; a non-English build additionally requires swapping in a multilingual model, and Romanian was tried and rejected on quality), and no ABI beyond `arm64-v8a`. The app is Pixel-first, not Pixel-only: it should install and run on other recent `arm64-v8a` phones, but only the Pixel 6 Pro is verified, and the power-button trigger depends on the OS routing the assist gesture to the app, which many OEM skins refuse (the Quick Note widget is the fallback there). See the README's "Requirements and scope" for the user-facing version.
+No settings/config UI (upstream's non-goal; this fork drops it, see "This fork"), no note editing, no streaming/partial transcripts, no multi-language support (the build targets exactly one language, English, via `Config.TRANSCRIPTION_LANGUAGE` plus an `.en` model; a non-English build additionally requires swapping in a multilingual model, and Romanian was tried and rejected on quality), and no ABI beyond `arm64-v8a`. The app is Pixel-first, not Pixel-only: it should install and run on other recent `arm64-v8a` phones, but only the Pixel 6 Pro is verified, and the power-button trigger depends on the OS routing the assist gesture to the app, which many OEM skins refuse (the Quick Note widget is the fallback there). See the README's "Requirements and scope" for the user-facing version.
 
 The one exception to "no network": the app holds `INTERNET` solely so `ModelDownloader` can fetch the ~57 MB model once on first launch, keeping it out of the APK and the repo. Capture and transcription themselves never touch the network, and no audio, transcript, or telemetry is ever sent anywhere. This supersedes the archived `offline-transcription` spec's "SHALL NOT declare the `INTERNET` permission" requirement — that spec has not been re-proposed yet.

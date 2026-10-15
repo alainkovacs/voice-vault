@@ -88,6 +88,11 @@ android {
             isReturnDefaultValues = true
         }
     }
+    // Issues lint already reported when this fork started are recorded here, so CI fails
+    // only on new ones. Regenerate with `./gradlew updateLintBaseline` only to accept issues deliberately.
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
 }
 
 dependencies {
