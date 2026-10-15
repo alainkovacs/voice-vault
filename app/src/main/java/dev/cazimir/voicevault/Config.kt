@@ -32,6 +32,14 @@ object Config {
      */
     const val NOTE_FRONTMATTER_TEMPLATE = "---\ncreated: {{created}}\n---\n"
 
+    /**
+     * The line a note's text becomes when this fork's "Save notes as tasks" setting is on.
+     * `{{text}}` is the transcript collapsed onto one line and `{{created}}` the capture date
+     * (yyyy-MM-dd). The Obsidian Tasks plugin reads its emoji fields from the end of the line,
+     * so add them at the end, e.g. "- [ ] {{text}} ➕ {{created}}" to give each task a created date.
+     */
+    const val TASK_LINE_TEMPLATE = "- [ ] {{text}}"
+
     const val MODEL_FILE_NAME = "ggml-base.en-q5_1.bin"
 
     /**

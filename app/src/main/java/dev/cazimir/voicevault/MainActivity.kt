@@ -28,6 +28,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -49,6 +50,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import dev.cazimir.voicevault.capture.RecordingService
 import dev.cazimir.voicevault.notify.CaptureNotifications
+import dev.cazimir.voicevault.settings.SettingsActivity
 import dev.cazimir.voicevault.transcribe.ModelDownloadState
 import dev.cazimir.voicevault.transcribe.ModelDownloader
 import dev.cazimir.voicevault.ui.theme.BrandIndigo
@@ -276,6 +278,12 @@ private fun SetupScreen(openPickerOnLaunch: Boolean, modifier: Modifier = Modifi
                     modifier = Modifier.padding(16.dp)
                 )
             }
+        }
+
+        OutlinedButton(onClick = {
+            context.startActivity(Intent(context, SettingsActivity::class.java))
+        }) {
+            Text("Settings")
         }
     }
 }

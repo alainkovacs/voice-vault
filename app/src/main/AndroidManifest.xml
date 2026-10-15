@@ -75,6 +75,10 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".settings.SettingsActivity"
+            android:exported="false" />
+
         <service
             android:name=".capture.RecordingService"
             android:exported="false"
