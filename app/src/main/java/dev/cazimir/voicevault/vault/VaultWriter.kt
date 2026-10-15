@@ -81,20 +81,23 @@ object VaultWriter {
      * Prepends [Config.NOTE_FRONTMATTER_TEMPLATE] (with the capture date filled in) to the
      * transcript. The template is intentionally minimal so notes fit any vault; edit it in
      * `Config.kt` to add your own keys. The body is shaped by this fork's [NoteSettings]
-     * (see [NoteExtras]); with every setting off it is the transcript unchanged.
+     * (see [NoteExtras]); with every setting off it is the transcript unchanged. [audio] is
+     * the capture's recording, which may be copied into the vault first and linked.
      */
-    fun writeNote(context: Context, text: String, captureId: String) =
-        writeNote(storage(context), text, captureId, NoteSettings.load(context))
+    fun writeNote(context: Context, text: String, captureId: String, audio: File? = null) =
+        writeNote(storage(context), text, captureId, NoteSettings.load(context), audio)
 
     internal fun writeNote(
         storage: VaultStorage,
         text: String,
         captureId: String,
         settings: NoteSettings = NoteSettings(),
+        audio: File? = null,
     ) {
         val createdDate = captureId.take(10)
         val frontmatter = Config.NOTE_FRONTMATTER_TEMPLATE.replace("{{created}}", createdDate)
-        storage.writeNote("$captureId.md", frontmatter + NoteExtras.body(text, createdDate, settings))
+        val keptAudio = NoteExtras.keepAudio(storage, captureId, settings, audio)
+        storage.writeNote("$captureId.md", frontmatter + NoteExtras.body(text, createdDate, settings, keptAudio))
     }
 
     /** Whether a note for [captureId] already exists - the source of truth for "did this capture succeed". */

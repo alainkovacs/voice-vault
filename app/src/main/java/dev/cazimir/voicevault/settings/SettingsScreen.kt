@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import dev.cazimir.voicevault.Config
 
 /** One switch on the settings screen. A new option is a [BooleanKey] in [SettingsStore] plus one row here. */
 private data class ToggleRow(val key: BooleanKey, val title: String, val description: String)
@@ -33,6 +34,13 @@ private val toggleRows = listOf(
         title = "Save notes as tasks",
         description = "Write each note as a single \"- [ ]\" checklist line, so the Obsidian Tasks " +
             "and Dataview plugins list it as a task. Line breaks are joined into one line.",
+    ),
+    ToggleRow(
+        SettingsStore.KEEP_AUDIO,
+        title = "Keep audio in the vault",
+        description = "Copy each voice note's recording into a \"${Config.VAULT_AUDIO_FOLDER}\" folder " +
+            "inside your vault folder and link it from the note. About 2 MB per minute. If a copy " +
+            "fails, the note is still saved, without the recording.",
     ),
 )
 

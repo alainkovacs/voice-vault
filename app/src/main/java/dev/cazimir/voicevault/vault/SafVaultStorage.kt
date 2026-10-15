@@ -5,6 +5,7 @@ import android.provider.DocumentsContract
 import android.util.Log
 import androidx.documentfile.provider.DocumentFile
 import dev.cazimir.voicevault.Config
+import java.io.File
 import java.io.IOException
 
 /**
@@ -108,4 +109,10 @@ class SafVaultStorage(context: Context) : VaultStorage {
 
     private fun noteFiles(): List<DocumentFile> =
         inbox?.listFiles()?.filter { it.isFile && it.name?.endsWith(".md") == true }.orEmpty()
+
+    /** This fork's opt-in audio copy - see [SafAudioWriter]. */
+    override fun writeAudio(fileName: String, source: File): String {
+        val dir = inbox ?: throw IOException("vault folder is not accessible")
+        return SafAudioWriter(resolver).write(dir.uri, fileName, source)
+    }
 }

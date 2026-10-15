@@ -12,13 +12,20 @@ class NoteSettingsTest {
     }
 
     @Test
-    fun `every stored setting reads through to its field`() {
-        assertEquals(NoteSettings(saveAsTask = true), NoteSettings.from { true })
+    fun `every stored setting reads through to its own field`() {
+        assertEquals(NoteSettings(saveAsTask = true), NoteSettings.from { it == SettingsStore.SAVE_AS_TASK })
+        assertEquals(NoteSettings(keepAudio = true), NoteSettings.from { it == SettingsStore.KEEP_AUDIO })
     }
 
     @Test
     fun `the upstream-behaviour defaults have every fork option off`() {
-        assertTrue(listOf(SettingsStore.SAVE_AS_TASK).none { it.default })
-        assertEquals(NoteSettings(saveAsTask = false), NoteSettings())
+        assertTrue(listOf(SettingsStore.SAVE_AS_TASK, SettingsStore.KEEP_AUDIO).none { it.default })
+        assertEquals(NoteSettings(saveAsTask = false, keepAudio = false), NoteSettings())
+    }
+
+    @Test
+    fun `stored keys are distinct`() {
+        val names = listOf(SettingsStore.SAVE_AS_TASK, SettingsStore.KEEP_AUDIO).map { it.name }
+        assertEquals(names.size, names.toSet().size)
     }
 }

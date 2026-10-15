@@ -42,7 +42,7 @@ object TranscriptionQueue {
     suspend fun transcribe(context: Context, wavFile: File): TranscriptionOutcome =
         transcribe(
             wavFile,
-            writeNote = { captureId, text -> VaultWriter.writeNote(context, text, captureId) },
+            writeNote = { captureId, text -> VaultWriter.writeNote(context, text, captureId, audio = wavFile) },
             deleteDiagnostic = { captureId -> VaultWriter.deleteDiagnostic(context, captureId) },
         ) { loadWhisper(context) }
 

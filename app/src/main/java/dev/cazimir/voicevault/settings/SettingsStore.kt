@@ -20,6 +20,7 @@ object SettingsStore {
     private const val PREFS = "settings"
 
     val SAVE_AS_TASK = BooleanKey("save_as_task", default = false)
+    val KEEP_AUDIO = BooleanKey("keep_audio_in_vault", default = false)
 
     private fun prefs(context: Context) =
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

@@ -10,12 +10,14 @@ import android.content.Context
  */
 data class NoteSettings(
     val saveAsTask: Boolean = false,
+    val keepAudio: Boolean = false,
 ) {
     companion object {
         fun load(context: Context): NoteSettings = from { SettingsStore.getBoolean(context, it) }
 
         internal fun from(read: (BooleanKey) -> Boolean) = NoteSettings(
             saveAsTask = read(SettingsStore.SAVE_AS_TASK),
+            keepAudio = read(SettingsStore.KEEP_AUDIO),
         )
     }
 }

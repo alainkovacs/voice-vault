@@ -1,5 +1,7 @@
 package dev.cazimir.voicevault.vault
 
+import java.io.File
+
 /**
  * Whether the app currently holds a usable grant on the vault folder. The three states
  * are kept distinct so first-run (never picked a folder) is never confused with recovery
@@ -40,7 +42,8 @@ data class VaultFolderInfo(val displayPath: String, val looksLikeVaultRoot: Bool
  * The SAF operations `VaultWriter` needs against the user-selected inbox folder. Kept to
  * plain `String` file names and value returns (no `DocumentFile`/`Uri` in the signatures)
  * so a JVM fake can stand in for it in unit tests. Pending audio and diagnostics do NOT
- * go through here - they stay `java.io.File`-based in `filesDir`.
+ * go through here - they stay `java.io.File`-based in `filesDir`. Only this fork's opt-in
+ * copy of a finished recording does, through [writeAudio].
  */
 interface VaultStorage {
 
@@ -64,4 +67,18 @@ interface VaultStorage {
 
     /** Every `.md` note with its content and mtime, unsorted. */
     fun listNotes(): List<RawNote>
+
+    /**
+     * This fork's "Keep audio in the vault": stores a finished capture's [source] WAV in
+     * [dev.cazimir.voicevault.Config.VAULT_AUDIO_FOLDER] inside the vault folder, atomically
+     * (temp document, then rename), and returns the name it is stored under - normally
+     * [fileName]. Never replaces an existing file: if that name already holds this exact
+     * recording (a retry of the same capture) it is reused, and if it holds anything else the
+     * copy goes to the next free "name (n).wav". Throws on any failure.
+     *
+     * The default throws, so storages that predate the setting (upstream's test fake) compile
+     * unchanged.
+     */
+    fun writeAudio(fileName: String, source: File): String =
+        throw UnsupportedOperationException("this storage cannot keep audio")
 }
